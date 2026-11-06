@@ -1,10 +1,31 @@
-Building you an interactive prompt builder with the template, questions, sample answers, and a copy button.
+# Prompts
 
-That's your Prompt Work Order: a fill-in ticket with five job types (quick question, script or code, work/NetSuite, life decision, start a project). Each one opens with a sample answer, builds the prompt live as you type, and has a copy button. Below the ticket are the rules of a good ask grouped by situation, plus a block of paste-once standing instructions.
+A place for prompts I use repeatedly, plus a fill-in prompt builder.
 
-How the automation works: you answer 3–4 questions, choose "one answer / options / plan first / just do it" and a length, then copy. It remembers your last draft in that browser.
+**Live builder:** https://cupyblon.github.io/promts/ (works once GitHub Pages is turned on, see below)
 
-Next steps:
-1. Copy the standing instructions into each of your Claude projects (PBS, Coding, home improvement and so on), so every chat starts with them.
-2. Pin the page in your sidebar if you want it one click away. Just say the word and I'll pin it.
-3. Use it for your next real script or NetSuite task, then tell me which questions felt useless or missing so I can tune the tickets.
+## What's here
+
+| File | What it's for |
+|---|---|
+| `index.html` | **Prompt Work Order**: pick a job type, answer 3–4 questions, copy a finished prompt. Remembers your last draft in your browser. |
+| `prompts/standing-instructions.md` | Paste once into a Claude project's instructions or your personal preferences. |
+| `prompts/quick-question.md` | Asking for an explanation or a fact. |
+| `prompts/script-request.md` | Asking for a script or code. |
+| `prompts/work-task.md` | Work and NetSuite admin tasks. |
+| `prompts/life-decision.md` | Thinking through a decision. |
+| `prompts/start-a-project.md` | Kicking off a new build or project. |
+| `prompts/rules.md` | The rules of a good ask, by situation. |
+
+## How to use a template
+
+1. Open the template file and copy the block.
+2. Replace everything in `[brackets]`.
+3. Delete any line you don't need.
+4. Pick one answer style and paste it into Claude.
+
+## Turn on the live page (one-time)
+
+1. Repo **Settings → Pages**.
+2. Source: **Deploy from a branch**, branch **main**, folder **/ (root)**, Save.
+3. Wait 1–2 minutes, then open the link at the top of this README.

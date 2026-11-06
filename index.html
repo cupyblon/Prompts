@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prompt Work Order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: a field-service work order. Left = fill-in ticket, right = assembled prompt; reference rules below. */
+:root{
+  --bg:#E9EDF1; --paper:#FFFCEF; --ink:#1B2836; --muted:#5A6878; --line:#C8D1DB; --accent:#1E5AA0; --accent-ink:#FFFFFF; --stamp:#B5482A;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11161C;--paper:#1A212A;--ink:#E3E8EE;--muted:#9AA7B5;--line:#2E3946;--accent:#6EA6E6;--accent-ink:#0E1620;--stamp:#E58A6C;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#11161C;--paper:#1A212A;--ink:#E3E8EE;--muted:#9AA7B5;--line:#2E3946;--accent:#6EA6E6;--accent-ink:#0E1620;--stamp:#E58A6C;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header h1{font-family:var(--f-display);font-weight:600;font-size:clamp(30px,5vw,44px);letter-spacing:.01em;margin:0;line-height:1.05;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.wo{font-family:var(--f-mono);font-size:12px;color:var(--stamp);letter-spacing:.08em;text-transform:uppercase}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{font-family:var(--f-display);font-size:18px;font-weight:500;padding:8px 14px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:6px;cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tab:focus-visible,.btn:focus-visible,.chip:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:1fr}}
+.ticket{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:22px;display:flex;flex-direction:column;gap:18px}
+.ticket-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline;border-bottom:1px dashed var(--line);padding-bottom:12px}
+.ticket-head h2{font-family:var(--f-display);font-weight:600;font-size:24px;margin:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-family:var(--f-display);font-weight:500;font-size:18px}
+.hint{font-size:14px;color:var(--muted)}
+textarea,input{font-family:var(--f-body);font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px;width:100%;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:14px;padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font-family:var(--f-display);font-size:17px;font-weight:500;padding:9px 16px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.out{position:sticky;top:max(16px,env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:12px}
+.out h2{font-family:var(--f-display);font-weight:600;font-size:24px;margin:0}
+pre{font-family:var(--f-mono);font-size:14px;line-height:1.6;white-space:pre-wrap;word-break:break-word;background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0;padding:16px;margin:0;min-height:180px}
+.status{font-size:14px;color:var(--muted);min-height:1.4em}
+.rules h2,.standing h2{font-family:var(--f-display);font-weight:600;font-size:28px;margin:0 0 4px}
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.rule-card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px}
+.rule-card h3{font-family:var(--f-display);font-weight:600;font-size:20px;margin:0 0 8px}
+.rule-card ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.rule-card li{font-size:15px}
+.rule-card code{font-family:var(--f-mono);font-size:13px}
+.standing p{color:var(--muted);margin:0 0 10px;max-width:70ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="wo">Work order · prompt</div>
+    <h1>Fill the ticket, get a prompt that lands the first time</h1>
+    <p>Pick the job type, answer the questions, and copy the finished prompt into Claude. Each ticket opens with a sample answer so you can see what good looks like.</p>
+  </header>
+
+  <div class="tabs" role="group" aria-label="Job type" id="tabs"></div>
+
+  <div class="grid">
+    <section class="ticket" aria-labelledby="ticketTitle">
+      <div class="ticket-head">
+        <h2 id="ticketTitle">Ticket</h2>
+        <div class="row">
+          <button class="btn" id="sampleBtn" type="button">Load sample</button>
+          <button class="btn" id="clearBtn" type="button">Clear</button>
+        </div>
+      </div>
+      <div id="fields" style="display:flex;flex-direction:column;gap:18px"></div>
+      <div class="field">
+        <label>How should Claude answer?</label>
+        <div class="chips" id="styleChips" role="group" aria-label="Answer style"></div>
+      </div>
+      <div class="field">
+        <label>Length</label>
+        <div class="chips" id="lenChips" role="group" aria-label="Length"></div>
+      </div>
+    </section>
+
+    <section class="out" aria-labelledby="outTitle">
+      <h2 id="outTitle">Your prompt</h2>
+      <pre id="output" aria-live="polite"></pre>
+      <div class="row">
+        <button class="btn primary" id="copyBtn" type="button">Copy prompt</button>
+      </div>
+      <div class="status" id="status"></div>
+    </section>
+  </div>
+
+  <section class="rules" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle">The rules of a good ask</h2>
+    <div class="rules-grid">
+      <div class="rule-card"><h3>Every prompt</h3><ol>
+        <li>Lead with the job in one sentence.</li>
+        <li>Say what done looks like: the format, the depth, what you'll do with it.</li>
+        <li>Name the environment or situation: system, version, limits, people involved.</li>
+        <li>Pick one: one answer, a few options, plan first, or just do it.</li>
+        <li>Give an example of what you want when you have one.</li>
+      </ol></div>
+      <div class="rule-card"><h3>Code and scripts</h3><ol>
+        <li>OS, language and version, and whether you have admin rights.</li>
+        <li>Paste the exact error text, not "it broke."</li>
+        <li>Paste the current script instead of describing it.</li>
+        <li>Ask for the complete script plus what each part does.</li>
+        <li>Say where it runs and how often: once, scheduled, on a server.</li>
+      </ol></div>
+      <div class="rule-card"><h3>Work and NetSuite</h3><ol>
+        <li>Say what access you have: admin, no SuiteScript, limited SuiteQL.</li>
+        <li>Name the audience: you, a manager, a vendor.</li>
+        <li>Ask for click-by-click steps when it lives in a UI.</li>
+        <li>For emails, give the goal and the relationship, then ask for 2 versions.</li>
+        <li>Keep work in the work project so context stays separate.</li>
+      </ol></div>
+      <div class="rule-card"><h3>Life and decisions</h3><ol>
+        <li>Lay out the real options, including "do nothing."</li>
+        <li>Say what matters most: time, money, family, health.</li>
+        <li>Ask Claude to push back, not just agree.</li>
+        <li>Ask for the tradeoffs and a recommendation, both.</li>
+        <li>End with "what's the first small step this week?"</li>
+      </ol></div>
+      <div class="rule-card"><h3>Starting a project</h3><ol>
+        <li>Describe the idea and why you want it.</li>
+        <li>State your limits: weekends only, budget, skill level.</li>
+        <li>Ask for phases, with phase 1 doable in one sitting.</li>
+        <li>Ask for the plan first, then build one phase at a time.</li>
+        <li>Put the project in its own Claude project so it remembers.</li>
+      </ol></div>
+      <div class="rule-card"><h3>When it misses</h3><ol>
+        <li>Say exactly what's off: too long, wrong tool, ignored X.</li>
+        <li>Quote the part that's wrong.</li>
+        <li>Correct it in the same chat; start fresh only if the chat got tangled.</li>
+        <li>After 3 misses, restart with a full ticket from this page.</li>
+        <li>If a correction should stick, say "remember this."</li>
+      </ol></div>
+    </div>
+  </section>
+
+  <section class="standing" aria-labelledby="standingTitle">
+    <h2 id="standingTitle">Paste-once standing instructions</h2>
+    <p>Put this in a project's instructions (or your personal preferences in Settings) so every chat starts with it. Then your tickets only need the job-specific parts.</p>
+    <pre id="standing">Answer directly first, explanation second. No filler.
+Give complete, copy-paste code with a plain-English note on what each part does. I modify scripts well but don't write them from scratch.
+Before taking any action (calendar, email, files), show me the plan and wait for my go-ahead.
+End with next steps when there are any.
+If my request is missing something you need, ask one short question instead of guessing.
+Push back when you think I'm wrong.</pre>
+    <div class="row" style="margin-top:10px"><button class="btn" id="copyStanding" type="button">Copy instructions</button></div>
+  </section>
+</div>
+
+<script>
+const T = {
+  chat:{name:"Quick question",lead:"",fields:[
+    {id:"q",label:"What do you want to know?",hint:"One sentence. The actual question.",sample:"What's the difference between a VLAN and a subnet, and do I need both on my home network?",pre:""},
+    {id:"ctx",label:"What do you already know or tried?",hint:"Saves Claude from explaining the basics.",sample:"Solid on basic networking. I'm setting up a managed switch and want IoT devices separated from my main PCs.",pre:"Context: "},
+    {id:"done",label:"What does done look like?",hint:"Format, depth, what you'll do with it.",sample:"Plain-English explanation, one example from a home setup, and whether I actually need both.",pre:"Done looks like: "}]},
+  code:{name:"Script or code",fields:[
+    {id:"q",label:"What should the script do?",hint:"The job, start to finish.",sample:"PowerShell script that copies D:\\Projects to my NAS every night and keeps the last 7 days of copies.",pre:""},
+    {id:"env",label:"Environment",hint:"OS, language and version, permissions, paths.",sample:"Windows 11, PowerShell 5.1, no admin rights. NAS share is \\\\nas\\backup. Log to C:\\Logs.",pre:"Environment: "},
+    {id:"err",label:"Current code or error (paste it)",hint:"Exact error text beats a description.",sample:"Last attempt failed with: Access to the path '\\\\nas\\backup' is denied.",pre:"What I have / the error: "},
+    {id:"done",label:"What does done look like?",hint:"Complete script? How to schedule it? Tested how?",sample:"Complete script, comments on each section, and steps to schedule it in Task Scheduler.",pre:"Done looks like: "}]},
+  work:{name:"Work / NetSuite",fields:[
+    {id:"q",label:"What's the problem or task?",hint:"What needs to exist or be fixed.",sample:"I need a saved search of open sales orders older than 30 days, grouped by customer.",pre:""},
+    {id:"env",label:"System and access",hint:"What you can and can't use.",sample:"NetSuite, admin role, no SuiteScript, limited SuiteQL.",pre:"System/access: "},
+    {id:"aud",label:"Who uses the result?",hint:"You, a manager, a vendor, end users.",sample:"Sales manager. She'll get it as a scheduled email every Monday.",pre:"Audience: "},
+    {id:"done",label:"What does done look like?",hint:"Steps, a document, an email draft.",sample:"Exact criteria and result columns, click-by-click in the UI, plus how to schedule the email.",pre:"Done looks like: "}]},
+  life:{name:"Life decision",fields:[
+    {id:"q",label:"What's the situation?",hint:"Plainly, like you'd tell a friend.",sample:"I'm deciding whether to take on more weekend side jobs or keep weekends for family.",pre:""},
+    {id:"opt",label:"What are the options?",hint:"Include \"do nothing.\"",sample:"1) Take every job that comes in. 2) Cap it at two Saturdays a month. 3) Pause side work until spring.",pre:"Options I see: "},
+    {id:"val",label:"What matters most?",hint:"Rank it if you can.",sample:"Time with family first, then extra income, then building the business.",pre:"What matters most: "},
+    {id:"done",label:"What does done look like?",hint:"A pick, a tradeoff table, a first step.",sample:"Your recommendation with the tradeoffs, honest pushback if I'm fooling myself, and one step for this week.",pre:"Done looks like: "}]},
+  project:{name:"Start a project",fields:[
+    {id:"q",label:"What's the idea?",hint:"What you want to exist when it's finished.",sample:"A self-hosted dashboard that shows all my homelab services and whether they're up.",pre:"Project: "},
+    {id:"why",label:"Why do you want it?",hint:"The real reason shapes the plan.",sample:"I keep forgetting what's running where, and I want one page to check every morning.",pre:"Why: "},
+    {id:"lim",label:"Limits",hint:"Time, budget, tools, skill level.",sample:"Weekends only, $0 budget, Docker on my existing server. I'm comfortable editing configs, not writing apps.",pre:"Limits: "},
+    {id:"done",label:"What does done look like?",hint:"Phases? A finished build? A decision?",sample:"A phased plan where phase 1 works in one weekend, with the exact files and commands for phase 1.",pre:"Done looks like: "}]}
+};
+const STYLES=[["one","One answer","Give me one answer, your best pick."],["opts","2–3 options","Give me 2–3 options with the tradeoffs, then say which you'd pick."],["plan","Plan first","Show me the plan first and wait for my go-ahead before doing anything."],["go","Just do it","No plan needed. Just do it."]];
+const LENS=[["short","Short","Keep it short."],["med","Medium",""],["long","Detailed","Be thorough; detail is fine."]];
+let cur="code", vals={}, style="one", len="short";
+const $=id=>document.getElementById(id);
+function load(){try{const s=JSON.parse(localStorage.getItem("pwo")||"null");if(s){cur=s.cur||cur;vals=s.vals||{};style=s.style||style;len=s.len||len}}catch(e){}}
+function save(){try{localStorage.setItem("pwo",JSON.stringify({cur,vals,style,len}))}catch(e){}}
+function sampleFor(k){const o={};T[k].fields.forEach(f=>o[f.id]=f.sample);return o}
+function renderTabs(){$("tabs").innerHTML="";Object.keys(T).forEach(k=>{const b=document.createElement("button");b.className="tab";b.type="button";b.textContent=T[k].name;b.setAttribute("aria-pressed",k===cur);b.onclick=()=>{cur=k;if(!vals[k])vals[k]=sampleFor(k);renderAll()};$("tabs").appendChild(b)})}
+function renderFields(){const box=$("fields");box.innerHTML="";$("ticketTitle").textContent=T[cur].name;const v=vals[cur]||(vals[cur]=sampleFor(cur));T[cur].fields.forEach(f=>{const d=document.createElement("div");d.className="field";const id="f-"+cur+"-"+f.id;d.innerHTML=`<label for="${id}">${f.label}</label><span class="hint">${f.hint}</span><textarea id="${id}" rows="${f.id==="q"?2:2}"></textarea>`;const ta=d.querySelector("textarea");ta.value=v[f.id]||"";ta.placeholder=f.sample;ta.oninput=()=>{v[f.id]=ta.value;build();save()};box.appendChild(d)})}
+function chips(el,list,getter,setter){el.innerHTML="";list.forEach(([k,label])=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=label;b.setAttribute("aria-pressed",getter()===k);b.onclick=()=>{setter(k);renderChips();build();save()};el.appendChild(b)})}
+function renderChips(){chips($("styleChips"),STYLES,()=>style,k=>style=k);chips($("lenChips"),LENS,()=>len,k=>len=k)}
+function build(){const v=vals[cur]||{};const lines=[];T[cur].fields.forEach(f=>{const t=(v[f.id]||"").trim();if(t)lines.push(f.pre+t)});const s=STYLES.find(x=>x[0]===style)[2];const l=LENS.find(x=>x[0]===len)[2];lines.push("How to answer: "+s+(l?" "+l:""));$("output").textContent=lines.join("\n\n")}
+function renderAll(){renderTabs();renderFields();renderChips();build();save()}
+async function copyText(text,btn,label){try{await navigator.clipboard.writeText(text);btn.textContent="Copied";$("status").textContent="Copied. Paste it into a new Claude chat."}catch(e){const r=document.createRange();r.selectNodeContents(btn===$("copyBtn")?$("output"):$("standing"));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);btn.textContent="Selected";$("status").textContent="Text is selected. Press Ctrl+C to copy."}setTimeout(()=>btn.textContent=label,1800)}
+$("copyBtn").onclick=()=>copyText($("output").textContent,$("copyBtn"),"Copy prompt");
+$("copyStanding").onclick=()=>copyText($("standing").textContent,$("copyStanding"),"Copy instructions");
+$("sampleBtn").onclick=()=>{vals[cur]=sampleFor(cur);renderFields();build();save()};
+$("clearBtn").onclick=()=>{vals[cur]={};T[cur].fields.forEach(f=>vals[cur][f.id]="");renderFields();build();save()};
+load();renderAll();
+</script>
+</body>
+</html>
